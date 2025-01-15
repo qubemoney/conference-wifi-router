@@ -1,0 +1,71 @@
+#!/bin/sh /etc/rc.common
+# NOTE: I didn't end up using this becuase it didn't work on restarts but it was a good exersice is understanding procd and init.d scripts.
+# Make script executable
+# $ chmod +x /etc/init.d/qube_tunnel
+
+# enable script on startup
+# $ /etc/init.d/qube_tunnel enable
+
+# Fake a restart with: 
+# $ /etc/init.d/qube_tunnel start
+
+START=99
+STOP=01
+USE_PROCD=1
+PROG="/etc/init.d/qube_tunnel"
+EXTRA_COMMANDS="status"  # Add this line to register the status command
+
+### BEGIN INIT INFO
+# Provides:          qube_tunnel
+# Required-Start:    $remote_fs $syslog $network
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Reverse SSH tunnel setup
+# Description:       Manages reverse SSH tunnel for connecting to the jump box
+### END INIT INFO
+
+start_service() {
+    # Procd instance to manage the service
+    procd_open_instance
+
+    procd_set_param command /usr/bin/ensure_qube_tunnel.sh
+
+    # the respawn threshold (the time frame in which the restart attempts are counted towards the retry limit)
+    # the respawn timeout (amount of seconds to wait before a service restart attempt) and 
+    # the respawn retry (how many restart attempts will be made before a service is considered crashed)
+    procd_set_param respawn 600 5 9999
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_close_instance
+}
+
+
+        
+
+stop_service() {
+    # this is dangerous because we are remote managing these boxes, this could sever connection.
+    # finds and kills the active connection
+    if [ -f /var/run/qube_tunnel.pid ]; then
+        kill "$(cat /var/run/qube_tunnel.pid)"
+        rm -f /var/run/qube_tunnel.pid
+    fi
+}
+
+status() {
+    ubus call service list '{"name":"qube_tunnel"}'
+}
+
+enable() {
+    echo "Enabling reverse SSH tunnel to start on boot..."
+    ln -s /etc/init.d/qube_tunnel /etc/rc.d/S99qube_tunnel && \
+    ln -s /etc/init.d/qube_tunnel /etc/rc.d/K01qube_tunnel && \
+    echo "Reverse SSH tunnel enabled."
+}
+
+disable() {
+    echo "Disabling reverse SSH tunnel from starting on boot..."
+    rm /etc/rc.d/S99qube_tunnel && \
+    rm /etc/rc.d/K01qube_tunnel && \
+    echo "Reverse SSH tunnel disabled."
+}

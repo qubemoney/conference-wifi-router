@@ -9,8 +9,6 @@ JUMP_BOX="wifi.qubemoney.com"
 JUMP_BOX_PORT=443
 TUNNEL_PORT=""
 USER="ubuntu"
-ENSURE_TUNNEL_SCRIPT="/usr/bin/ensure_qube_tunnel.sh"
-TUNNEL_SERVICE="/etc/init.d/qube_tunnel"
 SSHD_CONFIG_URL="https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/sshd_config"
 SSHD_CONFIG_PATH="/etc/ssh/sshd_config"
 
@@ -79,11 +77,13 @@ done
 
 # Download and configure ensure_qube_tunnel.sh
 echo "Setting up ensure_qube_tunnel.sh..."
+ENSURE_TUNNEL_SCRIPT="/usr/bin/ensure_qube_tunnel.sh"
 curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/ensure_qube_tunnel.sh -o "$ENSURE_TUNNEL_SCRIPT"
 chmod +x "$ENSURE_TUNNEL_SCRIPT"
 
 # Download and configure qube_tunnel init.d script
 echo "Setting up qube_tunnel service..."
+TUNNEL_SERVICE="/etc/init.d/qube_tunnel"
 curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/qube_tunnel -o "$TUNNEL_SERVICE"
 chmod +x "$TUNNEL_SERVICE"
 /etc/init.d/qube_tunnel enable
@@ -91,14 +91,15 @@ chmod +x "$TUNNEL_SERVICE"
 
 # Update firewall rules
 echo "Updating firewall rules..."
-curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/qube_update_firewall.sh -o /usr/bin/qube_update_firewall.sh
-chmod +x /usr/bin/qube_update_firewall.sh
+FIREWALL_SCRIPT_LOCATION="/usr/bin/qube_update_firewall.sh"
+curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/qube_update_firewall.sh -o "$FIREWALL_SCRIPT_LOCATION"
+chmod +x "$FIREWALL_SCRIPT_LOCATION"
 /usr/bin/qube_update_firewall.sh
 
 # Test the reverse SSH tunnel
 echo "Testing reverse SSH tunnel..."
 while true; do
-    ssh -p $JUMP_BOX_PORT $USER@$JUMP_BOX "echo Tunnel test successful"
+    ssh -p $JUMP_BOX_PORT -o ConnectTimeout=5 $USER@$JUMP_BOX "echo Tunnel test successful"
     if [ $? -eq 0 ]; then
         echo "Reverse SSH tunnel established successfully."
         break

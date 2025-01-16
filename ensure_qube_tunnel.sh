@@ -8,7 +8,28 @@ TUNNEL_PORT=$1
 USER="ubuntu"
 ROUTER_PORT=602
 PIDFILE="/var/run/qube_tunnel.pid"
-SSH_BASE="ssh -i $PRIVATE_KEY_PATH -o ConnectTimeout=5" #timeout after 5 seconds     
+SSH_BASE="ssh -i $PRIVATE_KEY_PATH -o ConnectTimeout=5" #timeout after 5 seconds    
+TUNNEL_PORT_FILE="/etc/qube_tunnel_port"
+
+# Load TUNNEL_PORT from file
+if [ ! -f "$TUNNEL_PORT_FILE" ]; then
+    echo "Error: Tunnel port file not found. Falling back to a random port between 2228-2232."
+    TUNNEL_PORT=$((RANDOM % 5 + 2228)) # Generate a random port between 2228 and 2232
+    echo "$TUNNEL_PORT" > "$TUNNEL_PORT_FILE" # Save the generated port to the file
+    echo "Generated and saved new tunnel port: $TUNNEL_PORT"
+else
+    TUNNEL_PORT=$(cat "$TUNNEL_PORT_FILE")
+    if ! [[ "$TUNNEL_PORT" =~ ^[0-9]+$ ]] || [ "$TUNNEL_PORT" -lt 1 ] || [ "$TUNNEL_PORT" -gt 65535 ]; then
+        echo "Error: Invalid port in tunnel port file. Falling back to a random port between 2228-2232."
+        TUNNEL_PORT=$((RANDOM % 5 + 2228)) # Generate a random port between 2228 and 2232
+        echo "$TUNNEL_PORT" > "$TUNNEL_PORT_FILE" # Save the generated port to the file
+        echo "Generated and saved new tunnel port: $TUNNEL_PORT"
+    fi
+fi
+
+echo "Using tunnel port: $TUNNEL_PORT"
+
+
 SSH_OPTIONS=" -p $JUMP_BOX_PORT -N -R 0.0.0.0:$TUNNEL_PORT:localhost:$ROUTER_PORT $USER@$JUMP_BOX"
 
 while true; do

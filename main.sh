@@ -7,6 +7,7 @@ PRIVATE_KEY_PATH="/root/.ssh/id_rsa"
 SSH_DIR="/root/.ssh"
 JUMP_BOX="wifi.qubemoney.com"
 JUMP_BOX_PORT=443
+TUNNEL_PORT_FILE="/etc/qube_tunnel_port"
 TUNNEL_PORT=""
 USER="ubuntu"
 SSHD_CONFIG_URL="https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/sshd_config"
@@ -69,11 +70,18 @@ fi
 echo "Testing connection to $JUMP_BOX..."
 ssh-keyscan -p $JUMP_BOX_PORT $JUMP_BOX >> /root/.ssh/known_hosts
 
-# Prompt user for tunnel port
-while [ -z "$TUNNEL_PORT" ]; do
-    echo -n "Enter the tunnel port number for the reverse SSH connection: "
-    read TUNNEL_PORT
-done
+# Prompt user for tunnel port if not already saved
+if [ ! -f "$TUNNEL_PORT_FILE" ]; then
+    while [ -z "$TUNNEL_PORT" ]; do
+        echo -n "Enter the tunnel port number for the reverse SSH connection: "
+        read TUNNEL_PORT
+    done
+    echo "$TUNNEL_PORT" > "$TUNNEL_PORT_FILE"
+else
+    TUNNEL_PORT=$(cat "$TUNNEL_PORT_FILE")
+    echo "Tunnel port loaded from file: $TUNNEL_PORT"
+fi
+
 
 # Download and configure ensure_qube_tunnel.sh
 echo "Setting up ensure_qube_tunnel.sh..."

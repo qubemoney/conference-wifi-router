@@ -1,0 +1,26 @@
+# Authentication settings
+ChallengeResponseAuthentication no
+PermitRootLogin yes
+PasswordAuthentication no
+AllowTcpForwarding yes
+GatewayPorts clientspecified
+PermitTunnel yes
+
+# Disable unused features
+X11Forwarding no
+PrintMotd no
+
+# Allow certain environment variables
+AcceptEnv LANG LC_*
+
+# SFTP subsystem
+Subsystem sftp /usr/lib/openssh/sftp-server
+
+# Bind and listen on required ports
+Port 602
+
+# Additional recommendations
+Protocol 2
+ClientAliveInterval 300
+ClientAliveCountMax 2
+MaxAuthTries 3

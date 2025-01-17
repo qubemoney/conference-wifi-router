@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -e
 echo "Beginning Router Configuration..."
 
 # Set constants

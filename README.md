@@ -29,6 +29,5 @@ root@GL-SFT1200:~#
 ```
 8. run:
 ```
-curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/main.sh | sh
-
+curl -O https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/main.sh && chmod +x main.sh && sh main.sh
 ```

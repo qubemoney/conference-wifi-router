@@ -37,11 +37,23 @@ else
     echo "dnsmasq is already installed."
 fi
 
+# Prompt user for tunnel port if not already saved
+if [ ! -f "$TUNNEL_PORT_FILE" ]; then
+    while [ -z "$TUNNEL_PORT" ]; do
+        echo -n "Enter the tunnel port number for the reverse SSH connection (example: 2222): "
+        read TUNNEL_PORT
+    done
+    echo "$TUNNEL_PORT" > "$TUNNEL_PORT_FILE"
+else
+    TUNNEL_PORT=$(cat "$TUNNEL_PORT_FILE")
+    echo "Tunnel port loaded from file: $TUNNEL_PORT"
+fi
+
 # Configure SSH keys
 if [ ! -f "$PRIVATE_KEY_PATH" ]; then
     echo "Generating SSH key..."
     mkdir -p "$SSH_DIR"
-    ssh-keygen -t rsa -b 4096 -f "$PRIVATE_KEY_PATH" -C "Qube Conference Router"
+    ssh-keygen -t rsa -b 4096 -f "$PRIVATE_KEY_PATH" -C "Qube Conference Router Port: $TUNNEL_PORT"
     chmod 600 "$PRIVATE_KEY_PATH"
     echo "SSH key generated."
     echo "Public key:"
@@ -74,17 +86,7 @@ fi
 echo "Testing connection to $JUMP_BOX_URL..."
 ssh-keyscan -p $JUMP_BOX_PORT $JUMP_BOX_URL >> /root/.ssh/known_hosts
 
-# Prompt user for tunnel port if not already saved
-if [ ! -f "$TUNNEL_PORT_FILE" ]; then
-    while [ -z "$TUNNEL_PORT" ]; do
-        echo -n "Enter the tunnel port number for the reverse SSH connection (example: 2222): "
-        read TUNNEL_PORT
-    done
-    echo "$TUNNEL_PORT" > "$TUNNEL_PORT_FILE"
-else
-    TUNNEL_PORT=$(cat "$TUNNEL_PORT_FILE")
-    echo "Tunnel port loaded from file: $TUNNEL_PORT"
-fi
+
 
 # Download and configure ensure_qube_tunnel.sh
 echo "Setting up ensure_qube_tunnel.sh..."

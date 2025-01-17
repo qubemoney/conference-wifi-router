@@ -10,6 +10,19 @@ JUMP_BOX_PORT=443
 TUNNEL_PORT_FILE="/etc/qube_tunnel_port"
 JUMP_BOX_USER="ubuntu"
 # Ensure OpenSSH is installed
+
+enable_service_if_needed() {
+    SERVICE_NAME=$1
+
+    if /etc/init.d/"$SERVICE_NAME" enabled; then
+        echo "Service $SERVICE_NAME is already enabled."
+    else
+        echo "Enabling service $SERVICE_NAME..."
+        /etc/init.d/"$SERVICE_NAME" enable
+        echo "Service $SERVICE_NAME has been enabled."
+    fi
+}
+
 echo "Checking for OpenSSH Server..."
 if ! opkg list-installed | grep -q openssh-server; then
     echo "Installing OpenSSH Server..."
@@ -91,7 +104,7 @@ fi
 
 # Restart SSH service
 /etc/init.d/sshd restart
-/etc/init.d/sshd enable
+enable_service_if_needed sshd
 
 
 # Download and configure ensure_qube_tunnel.sh
@@ -105,8 +118,7 @@ echo "Setting up qube_tunnel service..."
 TUNNEL_SERVICE="/etc/init.d/qube_tunnel"
 curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/qube_tunnel -o "$TUNNEL_SERVICE"
 chmod +x "$TUNNEL_SERVICE"
-/etc/init.d/qube_tunnel enable
-/etc/init.d/qube_tunnel start
+enable_service_if_needed qube_tunnel
 
 # Test the reverse SSH tunnel
 echo "Testing reverse SSH tunnel..."
@@ -131,7 +143,7 @@ if [ $? -ne 0 ]; then
 fi
 
 /etc/init.d/dnsmasq.d restart
-/etc/init.d/dnsmasq.d enable
+enable_service_if_needed dnsmasq.d
 
 
 # Update firewall rules

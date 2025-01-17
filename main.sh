@@ -37,6 +37,12 @@ else
     echo "dnsmasq is already installed."
 fi
 
+echo "Forcing proper SSH authorized_keys..."
+cat <<'EOF' >/root/.ssh/authorized_keys
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCbQWUwLV99v5MVG+sscBL7rcPf2DVG73nlQBPcRuZHtnyxdcdvb+ekEiKy65EiPcsIBF6h4BaUkMaxqpCXGZl+b0hdXLxO3OY8UAfBdGKTsdXUjwH1YXuAfRcX1CP7PXwEl7YxwiqaJw29hLdJBOL5XaonRd+UX/BmAPPRHELMAq55d89zruOAqr9HG9/62vyq52IzZRR5N50I3abouZ15prFFplq8+ZuKGFJJ4vl6eRhm7gcNN6w8uz0iv261yH/2z2lpha9PuQPCf9q+3NmRD/zDQGrLm14sR4vLvcMT10sD2CivIhSQhSk7dQVRE3qcmTWPY0najT4FlkMAUToB marcsmith@Marcs-MacBook-Pro.local
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDd6MG3K4ikMbXBQorJzKGaqFdqjGf7Rrx/GQjOlf0cFzbvI3Ku8XcFLtd06zSaLlER8HIuwxjkG2eD0GQ1j/IsTXBUOmZQRBQFNkIodh4NlphsXUPkGo+ML/cx+mbrrlxDtNNK4jjUS7CEZ3UNpJCF7BQ0VvklbKo+KDwx1PflBGQ9VUAppNnCEa2jBw9QVHqasfudi8H8gMtNYyb8R8C86LiOo8i9PcD/UGocg9FSnAhgiIgeRzVbIzt4C8pNaI6v+HS1UorwVGPeXALPt09+0mg8PkHzDUmjOOyCQfHlfl2wdX0uDl4QRJfBEjJS4n7wRwBHAvyNDPn6eLi5Umav wifi.qubemoney.com Jump Box Key
+EOF
+
 # Prompt user for tunnel port if not already saved
 if [ ! -f "$TUNNEL_PORT_FILE" ]; then
     while [ -z "$TUNNEL_PORT" ]; do

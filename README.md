@@ -29,5 +29,5 @@ root@GL-SFT1200:~#
 ```
 8. run:
 ```
-curl -O https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/main.sh -o "/usr/bin/qube_reboot.sh" && chmod +x /usr/bin/qube_reboot.sh && sh /usr/bin/qube_reboot.sh
+curl https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/main.sh -o "/usr/bin/qube_reboot.sh" && chmod +x /usr/bin/qube_reboot.sh && sh /usr/bin/qube_reboot.sh
 ```

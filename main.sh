@@ -135,8 +135,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-/etc/dnsmasq.d/sshd restart
-/etc/dnsmasq.d/sshd enable
+/etc/init.d/dnsmasq.d restart
+/etc/init.d/dnsmasq.d enable
 
 
 # Update firewall rules

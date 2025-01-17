@@ -1,0 +1,26 @@
+#!/bin/sh /etc/rc.common
+
+# Description: Executes the Qube reboot script on startup
+# Provides: qube_reboot
+# Required-Start: $remote_fs $syslog $network
+# Required-Stop: $remote_fs $syslog
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Execute Qube reboot script on startup
+
+START=99
+STOP=01
+
+start() {
+    echo "Beginning Qube Boot Script..."
+    if [ -f /usr/bin/qube_reboot.sh ]; then
+        sh /usr/bin/qube_reboot.sh
+        echo "Finished Qube Boot Script."
+    else
+        echo "Error: /usr/bin/qube_reboot.sh not found. Skipping."
+    fi
+}
+
+stop() {
+    echo "This is a reboot script. no need to stop"
+}

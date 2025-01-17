@@ -25,6 +25,14 @@ enable_service_if_needed() {
     fi
 }
 
+# Download and configure qube_tunnel init.d script
+echo "Setting up qube_tunnel service..."
+REBOOT_SERVICE="/etc/init.d/qube_reboot"
+curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/qube_reboot -o "$REBOOT_SERVICE"
+chmod +x "$REBOOT_SERVICE"
+enable_service_if_needed qube_reboot
+
+
 echo "Checking for OpenSSH Server..."
 if ! opkg list-installed | grep -q openssh-server; then
     echo "Installing OpenSSH Server..."

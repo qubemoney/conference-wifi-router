@@ -1,6 +1,8 @@
 #!/bin/sh
-set -e
 echo "Beginning Router Configuration..."
+# Error handling
+set -e
+
 
 # Set constants
 PRIVATE_KEY_PATH="/root/.ssh/id_rsa"
@@ -142,8 +144,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-/etc/init.d/dnsmasq.d restart
-enable_service_if_needed dnsmasq.d
+/etc/init.d/dnsmasq restart
+enable_service_if_needed dnsmasq
 
 
 # Update firewall rules

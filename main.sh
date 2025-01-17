@@ -28,6 +28,15 @@ else
     echo "OpenSSH Client is already installed."
 fi
 
+echo "Checking for OpenSSH Client..."
+if ! opkg list-installed | grep -q dnsmasq; then
+    echo "Installing dnsmasq..."
+    opkg update
+    opkg install dnsmasq
+else
+    echo "dnsmasq is already installed."
+fi
+
 # Configure SSH keys
 if [ ! -f "$PRIVATE_KEY_PATH" ]; then
     echo "Generating SSH key..."
@@ -91,13 +100,6 @@ chmod +x "$TUNNEL_SERVICE"
 /etc/init.d/qube_tunnel enable
 /etc/init.d/qube_tunnel start
 
-# Update firewall rules
-echo "Updating firewall rules..."
-FIREWALL_SCRIPT_LOCATION="/usr/bin/qube_update_firewall.sh"
-curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/qube_update_firewall.sh -o "$FIREWALL_SCRIPT_LOCATION"
-chmod +x "$FIREWALL_SCRIPT_LOCATION"
-/usr/bin/qube_update_firewall.sh
-
 # Test the reverse SSH tunnel
 echo "Testing reverse SSH tunnel..."
 while true; do
@@ -110,5 +112,31 @@ while true; do
         sleep 3
     fi
 done
+
+
+# Fetch and apply SSH daemon configuration
+echo "Fetching and applying dnsmasq configuration..."
+curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/dnsmasq.conf -o "/etc/dnsmasq.conf"
+if [ $? -ne 0 ]; then
+    echo "Error fetching allowlist.conf. Exiting."
+    exit 1
+fi
+
+/etc/dnsmasq.d/sshd restart
+/etc/dnsmasq.d/sshd enable
+
+
+# Update firewall rules
+echo "Updating firewall rules to force all DNS requests..."
+FIREWALL_SCRIPT_LOCATION="/usr/bin/qube_update_firewall.sh"
+curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/qube_update_firewall.sh -o "$FIREWALL_SCRIPT_LOCATION"
+chmod +x "$FIREWALL_SCRIPT_LOCATION"
+/usr/bin/qube_update_firewall.sh
+
+
+
+# Confirm the rules
+echo "Current iptables rules for $TARGET_IP:$TARGET_PORT:"
+iptables -t nat -L PREROUTING -v -n | grep "$TARGET_IP:$TARGET_PORT"
 
 echo "Setup complete."

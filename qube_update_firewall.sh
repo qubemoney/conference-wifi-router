@@ -5,17 +5,19 @@ set -e
 # Define the target IP and port
 TARGET_IP="192.168.8.1"
 TARGET_PORT="53"
+GUEST_INTERFACE="br-guest"
+
 echo "Ensuring all DNS requests are forced through dnsmasq..."
 # Function to check and add a rule
 add_rule_if_missing() {
   local protocol=$1
 
   # Check if the rule already exists
-  if iptables -t nat -C PREROUTING -p "$protocol" --dport "$TARGET_PORT" -j DNAT --to-destination "$TARGET_IP:$TARGET_PORT" 2>/dev/null; then
+  if iptables -t nat -C PREROUTING -i "$GUEST_INTERFACE" -p "$protocol" --dport "$TARGET_PORT" -j DNAT --to-destination "$TARGET_IP:$TARGET_PORT" 2>/dev/null; then
     echo "Rule for $protocol already exists. Skipping."
   else
     # Add the rule
-    iptables -t nat -A PREROUTING -p "$protocol" --dport "$TARGET_PORT" -j DNAT --to-destination "$TARGET_IP:$TARGET_PORT"
+    iptables -t nat -A PREROUTING -i "$GUEST_INTERFACE" -p "$protocol" --dport "$TARGET_PORT" -j DNAT --to-destination "$TARGET_IP:$TARGET_PORT"
     echo "Added rule for $protocol."
   fi
 }

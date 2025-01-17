@@ -45,10 +45,11 @@ EOF
 
 # Prompt user for tunnel port if not already saved
 if [ ! -f "$TUNNEL_PORT_FILE" ]; then
-    while [ -z "$TUNNEL_PORT" ]; do
-        echo -n "Enter the tunnel port number for the reverse SSH connection (example: 2222): "
+    while ! echo "$TUNNEL_PORT" | grep -q '^[0-9]\+$'; do
+        printf "Enter a valid numeric tunnel port number: "
         read TUNNEL_PORT
     done
+    touch $TUNNEL_PORT_FILE
     echo "$TUNNEL_PORT" > "$TUNNEL_PORT_FILE"
 else
     TUNNEL_PORT=$(cat "$TUNNEL_PORT_FILE")
@@ -65,11 +66,15 @@ if [ ! -f "$PRIVATE_KEY_PATH" ]; then
     echo "Public key:"
     cat "${PRIVATE_KEY_PATH}.pub"
     echo "Please provide the above public key to Marc to add to $JUMP_BOX_URL."
+
     while true; do
-        echo -n "Has the key been added to $JUMP_BOX_URL? (yes to continue): "
+        echo -n "Has the key been added to $JUMP_BOX_URL? (type 'yes' to continue): "
         read RESPONSE
         if [ "$RESPONSE" = "yes" ]; then
+            echo "Continuing with the process..."
             break
+        else
+            echo "Waiting for the key to be added..."
         fi
     done
 else

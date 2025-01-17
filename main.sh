@@ -45,11 +45,11 @@ EOF
 
 # Prompt user for tunnel port if not already saved
 if [ ! -f "$TUNNEL_PORT_FILE" ]; then
+    TUNNEL_PORT=""
     while ! echo "$TUNNEL_PORT" | grep -q '^[0-9]\+$'; do
         printf "Enter a valid numeric tunnel port number: "
-        read TUNNEL_PORT
+        read TUNNEL_PORT  < /dev/tty
     done
-    touch $TUNNEL_PORT_FILE
     echo "$TUNNEL_PORT" > "$TUNNEL_PORT_FILE"
 else
     TUNNEL_PORT=$(cat "$TUNNEL_PORT_FILE")
@@ -69,7 +69,7 @@ if [ ! -f "$PRIVATE_KEY_PATH" ]; then
 
     while true; do
         echo -n "Has the key been added to $JUMP_BOX_URL? (type 'yes' to continue): "
-        read RESPONSE
+        read RESPONSE < /dev/tty
         if [ "$RESPONSE" = "yes" ]; then
             echo "Continuing with the process..."
             break

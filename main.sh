@@ -63,12 +63,16 @@ if [ ! -f "$TUNNEL_PORT_FILE" ]; then
     TUNNEL_PORT=""
     while ! echo "$TUNNEL_PORT" | grep -q '^[0-9]\+$'; do
         printf "Enter a valid numeric tunnel port number: "
-        read TUNNEL_PORT  < /dev/tty
+        read TUNNEL_PORT < /dev/tty
     done
+    TUNNEL_PORT=$(echo "$TUNNEL_PORT" | tr -cd '0-9')
     echo "$TUNNEL_PORT" > "$TUNNEL_PORT_FILE"
 else
     TUNNEL_PORT=$(cat "$TUNNEL_PORT_FILE")
-    echo "Tunnel port loaded from file: $TUNNEL_PORT"
+    # Sanitize and save after loading from the file
+    TUNNEL_PORT=$(echo "$TUNNEL_PORT" | tr -cd '0-9')
+    echo "Tunnel port loaded and sanitized from file: $TUNNEL_PORT"
+    echo "$TUNNEL_PORT" > "$TUNNEL_PORT_FILE"
 fi
 
 # Configure SSH keys
@@ -99,10 +103,6 @@ fi
 # Fetch and apply SSH daemon configuration
 echo "Fetching and applying SSH daemon configuration..."
 curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/sshd_config -o "/etc/ssh/sshd_config"
-if [ $? -ne 0 ]; then
-    echo "Error fetching sshd_config. Exiting."
-    exit 1
-fi
 
 # Restart SSH service
 /etc/init.d/sshd restart
@@ -139,11 +139,6 @@ done
 # Fetch and apply SSH daemon configuration
 echo "Fetching and applying dnsmasq configuration..."
 curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/dnsmasq.conf -o "/etc/dnsmasq.conf"
-if [ $? -ne 0 ]; then
-    echo "Error fetching allowlist.conf. Exiting."
-    exit 1
-fi
-
 /etc/init.d/dnsmasq restart
 enable_service_if_needed dnsmasq
 
@@ -153,6 +148,7 @@ echo "Updating firewall rules to force all DNS requests..."
 FIREWALL_SCRIPT_LOCATION="/usr/bin/qube_update_firewall.sh"
 curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/qube_update_firewall.sh -o "$FIREWALL_SCRIPT_LOCATION"
 chmod +x "$FIREWALL_SCRIPT_LOCATION"
+echo "running..."
 /usr/bin/qube_update_firewall.sh
 
 

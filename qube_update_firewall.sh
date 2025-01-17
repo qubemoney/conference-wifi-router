@@ -1,5 +1,6 @@
 #!/bin/sh
 
+set -e
 
 # Define the target IP and port
 TARGET_IP="192.168.8.1"

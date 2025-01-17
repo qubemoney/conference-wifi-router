@@ -8,7 +8,7 @@ TUNNEL_PORT=$1
 USER="ubuntu"
 ROUTER_PORT=602
 PIDFILE="/var/run/qube_tunnel.pid"
-SSH_BASE="ssh -i $PRIVATE_KEY_PATH -o ConnectTimeout=5" #timeout after 5 seconds    
+SSH_BASE="ssh -i $PRIVATE_KEY_PATH -o ConnectTimeout=5 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" #timeout after 5 seconds    
 TUNNEL_PORT_FILE="/etc/qube_tunnel_port"
 
 # Load TUNNEL_PORT from file

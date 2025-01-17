@@ -93,11 +93,6 @@ fi
 /etc/init.d/sshd restart
 /etc/init.d/sshd enable
 
-# Add jump box host key to known_hosts
-echo "Testing connection to $JUMP_BOX_URL..."
-ssh-keyscan -p $JUMP_BOX_PORT $JUMP_BOX_URL >> /root/.ssh/known_hosts
-
-
 
 # Download and configure ensure_qube_tunnel.sh
 echo "Setting up ensure_qube_tunnel.sh..."
@@ -116,7 +111,7 @@ chmod +x "$TUNNEL_SERVICE"
 # Test the reverse SSH tunnel
 echo "Testing reverse SSH tunnel..."
 while true; do
-    ssh -p $JUMP_BOX_PORT -o ConnectTimeout=5 $JUMP_BOX_USER@$JUMP_BOX_URL "echo Tunnel test successful"
+    ssh -p $JUMP_BOX_PORT -o ConnectTimeout=5 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $JUMP_BOX_USER@$JUMP_BOX_URL "echo Tunnel test successful"
     if [ $? -eq 0 ]; then
         echo "Reverse SSH tunnel established successfully."
         break

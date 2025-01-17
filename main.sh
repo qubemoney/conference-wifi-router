@@ -59,7 +59,7 @@ fi
 if [ ! -f "$PRIVATE_KEY_PATH" ]; then
     echo "Generating SSH key..."
     mkdir -p "$SSH_DIR"
-    ssh-keygen -t rsa -b 4096 -f "$PRIVATE_KEY_PATH" -C "Qube Conference Router Port: $TUNNEL_PORT"
+    ssh-keygen -t rsa -b 4096 -f "$PRIVATE_KEY_PATH" -C "Qube Conference Router Port: $TUNNEL_PORT" -N ""
     chmod 600 "$PRIVATE_KEY_PATH"
     echo "SSH key generated."
     echo "Public key:"

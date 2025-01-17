@@ -1,20 +1,14 @@
-#! /bin/sh
+#!/bin/sh
 
-echo "Begining Router Configuration..."
+echo "Beginning Router Configuration..."
 
 # Set constants
 PRIVATE_KEY_PATH="/root/.ssh/id_rsa"
 SSH_DIR="/root/.ssh"
-JUMP_BOX="wifi.qubemoney.com"
+JUMP_BOX_URL="wifi.qubemoney.com"
 JUMP_BOX_PORT=443
 TUNNEL_PORT_FILE="/etc/qube_tunnel_port"
-TUNNEL_PORT=""
-USER="ubuntu"
-SSHD_CONFIG_URL="https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/sshd_config"
-SSHD_CONFIG_PATH="/etc/ssh/sshd_config"
-
-# Ensure OpenSSH is installed
-echo "Installing OpenSSH..."
+JUMP_BOX_USER="ubuntu"
 # Ensure OpenSSH is installed
 echo "Checking for OpenSSH Server..."
 if ! opkg list-installed | grep -q openssh-server; then
@@ -24,6 +18,7 @@ if ! opkg list-installed | grep -q openssh-server; then
 else
     echo "OpenSSH Server is already installed."
 fi
+
 echo "Checking for OpenSSH Client..."
 if ! opkg list-installed | grep -q openssh-client; then
     echo "Installing OpenSSH Client..."
@@ -37,14 +32,14 @@ fi
 if [ ! -f "$PRIVATE_KEY_PATH" ]; then
     echo "Generating SSH key..."
     mkdir -p "$SSH_DIR"
-    ssh-keygen -t rsa -b 4096 -f "$PRIVATE_KEY_PATH" -C "Qube Conference Router $TUNNEL_PORT"
+    ssh-keygen -t rsa -b 4096 -f "$PRIVATE_KEY_PATH" -C "Qube Conference Router"
     chmod 600 "$PRIVATE_KEY_PATH"
     echo "SSH key generated."
     echo "Public key:"
     cat "${PRIVATE_KEY_PATH}.pub"
-    echo "Please provide the above public key to Marc to add to $JUMP_BOX."
+    echo "Please provide the above public key to Marc to add to $JUMP_BOX_URL."
     while true; do
-        echo -n "Has the key been added to $JUMP_BOX? (yes to continue): "
+        echo -n "Has the key been added to $JUMP_BOX_URL? (yes to continue): "
         read RESPONSE
         if [ "$RESPONSE" = "yes" ]; then
             break
@@ -56,7 +51,7 @@ fi
 
 # Fetch and apply SSH daemon configuration
 echo "Fetching and applying SSH daemon configuration..."
-curl -s "$SSHD_CONFIG_URL" -o "$SSHD_CONFIG_PATH"
+curl -s https://raw.githubusercontent.com/qubemoney/conference-wifi-router/main/sshd_config -o "/etc/ssh/sshd_config"
 if [ $? -ne 0 ]; then
     echo "Error fetching sshd_config. Exiting."
     exit 1
@@ -67,13 +62,13 @@ fi
 /etc/init.d/sshd enable
 
 # Add jump box host key to known_hosts
-echo "Testing connection to $JUMP_BOX..."
-ssh-keyscan -p $JUMP_BOX_PORT $JUMP_BOX >> /root/.ssh/known_hosts
+echo "Testing connection to $JUMP_BOX_URL..."
+ssh-keyscan -p $JUMP_BOX_PORT $JUMP_BOX_URL >> /root/.ssh/known_hosts
 
 # Prompt user for tunnel port if not already saved
 if [ ! -f "$TUNNEL_PORT_FILE" ]; then
     while [ -z "$TUNNEL_PORT" ]; do
-        echo -n "Enter the tunnel port number for the reverse SSH connection: "
+        echo -n "Enter the tunnel port number for the reverse SSH connection (example: 2222): "
         read TUNNEL_PORT
     done
     echo "$TUNNEL_PORT" > "$TUNNEL_PORT_FILE"
@@ -81,7 +76,6 @@ else
     TUNNEL_PORT=$(cat "$TUNNEL_PORT_FILE")
     echo "Tunnel port loaded from file: $TUNNEL_PORT"
 fi
-
 
 # Download and configure ensure_qube_tunnel.sh
 echo "Setting up ensure_qube_tunnel.sh..."
@@ -107,7 +101,7 @@ chmod +x "$FIREWALL_SCRIPT_LOCATION"
 # Test the reverse SSH tunnel
 echo "Testing reverse SSH tunnel..."
 while true; do
-    ssh -p $JUMP_BOX_PORT -o ConnectTimeout=5 $USER@$JUMP_BOX "echo Tunnel test successful"
+    ssh -p $JUMP_BOX_PORT -o ConnectTimeout=5 $JUMP_BOX_USER@$JUMP_BOX_URL "echo Tunnel test successful"
     if [ $? -eq 0 ]; then
         echo "Reverse SSH tunnel established successfully."
         break
